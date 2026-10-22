@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud Computing Cost Estimator</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-badge">
+          <span class="brand-icon">☁️</span>
+          <div>
+            <div class="brand-title">CloudCost</div>
+            <div class="brand-subtitle">Infrastructure Estimator</div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-link active" data-section="dashboard">
+          <span>📊</span> Dashboard
+        </a>
+        <a href="#" class="nav-link" data-section="calculator">
+          <span>⚙️</span> Resource Calculator
+        </a>
+        <a href="#" class="nav-link" data-section="providers">
+          <span>⚖️</span> Provider Comparison
+        </a>
+        <a href="#" class="nav-link" data-section="breakdown">
+          <span>📑</span> Cost Breakdown
+        </a>
+        <a href="#" class="nav-link" data-section="comparison">
+          <span>🔀</span> Compare Configs
+        </a>
+        <a href="#" class="nav-link" data-section="saved">
+          <span>💾</span> Saved Estimates
+        </a>
+        <a href="#" class="nav-link" data-section="learning">
+          <span>🎓</span> FinOps & Learning
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p><strong>Cloud Cost Estimator v1.0</strong></p>
+        <p>Academic Cloud Computing Project</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Shell -->
+    <div class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Navigation">☰</button>
+          <span class="badge badge-provider" id="active-currency-badge">Currency: INR (₹)</span>
+        </div>
+
+        <div class="topbar-right">
+          <div class="select-wrapper">
+            <label for="currency-select">Currency:</label>
+            <select id="currency-select" class="form-control-sm">
+              <option value="INR" selected>INR (₹)</option>
+              <option value="USD">USD ($)</option>
+            </select>
+          </div>
+          <button id="theme-toggle-btn" class="btn btn-secondary btn-sm">🌙 Dark Mode</button>
+        </div>
+      </header>
+
+      <!-- Main Application Views -->
+      <main class="app-content">
+        <!-- Global Disclaimer Banner -->
+        <div class="disclaimer-banner">
+          <span>ℹ️</span>
+          <div>
+            <strong>Illustrative Academic Planning Tool:</strong> All calculations are simulated estimates based on sample baseline rates. They are not official quotes or live invoices from Amazon Web Services, Microsoft Azure, or Google Cloud Platform.
+          </div>
+        </div>
+
+        <!-- 1. DASHBOARD SECTION -->
+        <section class="app-section active" id="section-dashboard">
+          <div class="section-header">
+            <h2>Cloud Infrastructure Cost Dashboard</h2>
+            <p class="section-subtitle">Real-time financial overview and resource distribution for your configured infrastructure.</p>
+          </div>
+
+          <!-- Metrics Row -->
+          <div class="metrics-row">
+            <div class="metric-card">
+              <span class="metric-label">Estimated Monthly Total</span>
+              <div class="metric-value" id="dash-monthly-total">₹0.00</div>
+              <span class="metric-sub">Pay-as-you-go estimated run-rate</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">Estimated Annual Total</span>
+              <div class="metric-value" id="dash-annual-total">₹0.00</div>
+              <span class="metric-sub">12-month projected spend</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">Configured Resources</span>
+              <div class="metric-value" id="dash-resource-count">0</div>
+              <span class="metric-sub">VMs, databases, load balancers</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">Cloud Provider</span>
+              <div class="metric-value" id="dash-active-provider">AWS</div>
+              <span class="metric-sub">Active sample pricing profile</span>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="charts-grid">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Cost Distribution by Category</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-distribution"></canvas>
+                <div id="chart-distribution-fallback" class="chart-fallback-container" style="display:none;"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">12-Month Cumulative Spending Projection</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-spending"></canvas>
+                <div id="chart-spending-fallback" class="chart-fallback-container" style="display:none;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Bar -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Configuration Actions</h3>
+              <div style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-primary btn-sm" id="new-estimate-btn">⚙️ Adjust Resource Calculator</button>
+                <button class="btn btn-secondary btn-sm" id="save-estimate-btn">💾 Save to Browser</button>
+              </div>
+            </div>
+            <p class="text-muted text-sm">Need to model alternative architecture tiers? Head to the <strong>Compare Configs</strong> tab or customize pricing in the <strong>Resource Calculator</strong>.</p>
+          </div>
+        </section>
+
+        <!-- 2. CALCULATOR SECTION -->
+        <section class="app-section" id="section-calculator">
+          <div class="section-header">
+            <h2>Cloud Resource Cost Calculator</h2>
+            <p class="section-subtitle">Customize compute instances, persistent storage, data transfer, and managed services.</p>
+          </div>
+
+          <form id="cost-calculator-form">
+            <div class="calculator-grid">
+              <!-- Left Column: Resource Config Cards -->
+              <div>
+                <!-- Configuration Name & Provider Selection -->
+                <div class="calc-section-card">
+                  <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                      <label for="config-name-input">Configuration Label</label>
+                      <input type="text" id="config-name-input" class="form-control" value="Standard Production Deployment" placeholder="e.g. Production Cluster">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                      <label for="provider-select">Pricing Profile</label>
+                      <select id="provider-select" class="form-control">
+                        <option value="aws" selected>Amazon Web Services (AWS)</option>
+                        <option value="azure">Microsoft Azure</option>
+                        <option value="gcp">Google Cloud Platform (GCP)</option>
+                        <option value="custom">Custom Private Cloud</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 1. Compute Section -->
+                <div class="calc-section-card">
+                  <div class="calc-section-title">
+                    <span>💻 Virtual Machines (Compute)</span>
+                    <span class="badge badge-provider">Pay-as-you-go</span>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="compute-vms">Virtual Machine Count</label>
+                      <input type="number" id="compute-vms" min="1" max="1000" value="2">
+                    </div>
+                    <div class="form-group">
+                      <label for="compute-vcpu">vCPU per VM</label>
+                      <input type="number" id="compute-vcpu" min="1" max="128" value="2">
+                    </div>
+                    <div class="form-group">
+                      <label for="compute-ram">RAM per VM (GB)</label>
+                      <input type="number" id="compute-ram" min="1" max="1024" value="4">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="compute-hours">Operating Hours / Month</label>
+                      <input type="number" id="compute-hours" min="0" max="744" value="730">
+                      <span class="text-light text-xs">730 hrs = continuous 24/7 run</span>
+                    </div>
+                    <div class="form-group">
+                      <label for="compute-rate">Hourly Rate per VM</label>
+                      <div class="input-with-symbol">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="compute-rate" step="any" min="0" value="3.45">
+                      </div>
+                      <span class="text-light text-xs">Editable rate based on profile</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Storage Section -->
+                <div class="calc-section-card">
+                  <div class="calc-section-title">
+                    <span>🗄️ Cloud Storage</span>
+                    <span class="badge badge-provider">GB / Month</span>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="storage-capacity">Total Capacity (GB)</label>
+                      <input type="number" id="storage-capacity" min="0" max="1000000" value="150">
+                    </div>
+                    <div class="form-group">
+                      <label for="storage-type">Storage Class</label>
+                      <select id="storage-type" class="form-control">
+                        <option value="standard" selected>Standard Object Storage (e.g. S3 / Blob Hot)</option>
+                        <option value="block">Block Storage (e.g. EBS gp3 / Managed SSD)</option>
+                        <option value="archive">Cold / Archival Storage (e.g. Glacier)</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="storage-rate">Monthly Price per GB</label>
+                      <div class="input-with-symbol">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="storage-rate" step="any" min="0" value="1.91">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. Data Transfer (Egress) -->
+                <div class="calc-section-card">
+                  <div class="calc-section-title">
+                    <span>🌐 Network Data Transfer (Egress)</span>
+                    <span class="badge badge-provider">Outbound</span>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="transfer-outbound">Monthly Outbound Transfer (GB)</label>
+                      <input type="number" id="transfer-outbound" min="0" max="1000000" value="250">
+                    </div>
+                    <div class="form-group">
+                      <label for="transfer-free">Included Free Allowance (GB)</label>
+                      <input type="number" id="transfer-free" min="0" max="1000000" value="100">
+                    </div>
+                    <div class="form-group">
+                      <label for="transfer-rate">Price per Additional GB</label>
+                      <div class="input-with-symbol">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="transfer-rate" step="any" min="0" value="7.47">
+                      </div>
+                    </div>
+                  </div>
+                  <p class="text-light text-xs" style="margin-top:0.5rem;">Note: Inbound data transfer is generally free across major cloud providers; outbound internet egress is billed per GB after free tier quotas.</p>
+                </div>
+
+                <!-- 4. Database Service -->
+                <div class="calc-section-card">
+                  <div class="calc-section-title">
+                    <span>🗃️ Managed Database Service</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="database-enabled" checked>
+                      <span>Enable Database</span>
+                    </label>
+                  </div>
+                  <div id="db-options-panel">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="db-instances">Instance Count</label>
+                        <input type="number" id="db-instances" min="1" max="100" value="1">
+                      </div>
+                      <div class="form-group">
+                        <label for="db-rate">Monthly Price per Instance</label>
+                        <div class="input-with-symbol">
+                          <span class="currency-symbol">₹</span>
+                          <input type="number" id="db-rate" step="any" min="0" value="2490.00">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 5. Load Balancer Service -->
+                <div class="calc-section-card">
+                  <div class="calc-section-title">
+                    <span>⚖️ Cloud Load Balancer</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="lb-enabled" checked>
+                      <span>Enable Load Balancer</span>
+                    </label>
+                  </div>
+                  <div id="lb-options-panel">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="lb-count">Number of Load Balancers</label>
+                        <input type="number" id="lb-count" min="1" max="50" value="1">
+                      </div>
+                      <div class="form-group">
+                        <label for="lb-rate">Monthly Cost per Load Balancer</label>
+                        <div class="input-with-symbol">
+                          <span class="currency-symbol">₹</span>
+                          <input type="number" id="lb-rate" step="any" min="0" value="1494.00">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 6. Additional Monthly Expenses -->
+                <div class="calc-section-card">
+                  <div class="calc-section-title">
+                    <span>➕ Additional Services & Expenses</span>
+                    <button type="button" class="btn btn-secondary btn-sm" id="add-service-btn">+ Add Item</button>
+                  </div>
+                  <div id="additional-services-list"></div>
+                </div>
+              </div>
+
+              <!-- Right Column: Sticky Summary & Action Controls -->
+              <div>
+                <div class="card" style="position: sticky; top: 5rem;">
+                  <h3 class="card-title" style="margin-bottom:1rem;">Estimate Summary</h3>
+                  <div style="margin-bottom: 1.25rem;">
+                    <span class="metric-label">Estimated Monthly Total</span>
+                    <div class="metric-value" id="calc-sticky-monthly" style="color:var(--primary-blue);">₹0.00</div>
+                    <span class="text-light text-xs">Updates live as parameters change</span>
+                  </div>
+
+                  <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    <button type="button" class="btn btn-primary" onclick="document.querySelector('[data-section=breakdown]').click()">View Detailed Breakdown</button>
+                    <button type="button" class="btn btn-secondary" id="reset-calc-btn">Reset to Defaults</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <!-- 3. PROVIDER COMPARISON SECTION -->
+        <section class="app-section" id="section-providers">
+          <div class="section-header">
+            <h2>Multi-Cloud Provider Comparison</h2>
+            <p class="section-subtitle">Evaluating your identical resource footprint against baseline sample pricing profiles across providers.</p>
+          </div>
+
+          <div class="provider-cards-grid">
+            <div class="provider-card provider-aws" id="provider-card-aws">
+              <div class="provider-title">Amazon Web Services (AWS)</div>
+              <div class="provider-monthly-cost">₹0.00</div>
+              <div class="provider-annual-cost">Annual: ₹0.00</div>
+              <ul class="text-muted text-xs" style="padding-left:1.2rem; line-height: 1.6;">
+                <li>Sample Compute: EC2 t3-series</li>
+                <li>Sample Storage: S3 Standard</li>
+                <li>Free Egress Allowance: 100 GB/mo</li>
+              </ul>
+            </div>
+
+            <div class="provider-card provider-azure" id="provider-card-azure">
+              <div class="provider-title">Microsoft Azure</div>
+              <div class="provider-monthly-cost">₹0.00</div>
+              <div class="provider-annual-cost">Annual: ₹0.00</div>
+              <ul class="text-muted text-xs" style="padding-left:1.2rem; line-height: 1.6;">
+                <li>Sample Compute: Azure B/D-series</li>
+                <li>Sample Storage: Blob Storage Hot</li>
+                <li>Free Egress Allowance: 100 GB/mo</li>
+              </ul>
+            </div>
+
+            <div class="provider-card provider-gcp" id="provider-card-gcp">
+              <div class="provider-title">Google Cloud Platform (GCP)</div>
+              <div class="provider-monthly-cost">₹0.00</div>
+              <div class="provider-annual-cost">Annual: ₹0.00</div>
+              <ul class="text-muted text-xs" style="padding-left:1.2rem; line-height: 1.6;">
+                <li>Sample Compute: Compute Engine e2</li>
+                <li>Sample Storage: Cloud Storage Standard</li>
+                <li>Free Egress Allowance: 100 GB/mo</li>
+              </ul>
+            </div>
+
+            <div class="provider-card provider-custom" id="provider-card-custom">
+              <div class="provider-title">Custom / Private Cloud</div>
+              <div class="provider-monthly-cost">₹0.00</div>
+              <div class="provider-annual-cost">Annual: ₹0.00</div>
+              <ul class="text-muted text-xs" style="padding-left:1.2rem; line-height: 1.6;">
+                <li>Fully user-configurable profile</li>
+                <li>On-premises / Colocation model</li>
+                <li>Adjustable hardware amortization</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom:1rem;">Estimated Monthly Cost by Provider</h3>
+            <div class="chart-container">
+              <canvas id="chart-providers"></canvas>
+              <div id="chart-providers-fallback" class="chart-fallback-container" style="display:none;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. COST BREAKDOWN & EXPORT SECTION -->
+        <section class="app-section" id="section-breakdown">
+          <div class="section-header">
+            <h2>Detailed Cost Breakdown & Export</h2>
+            <p class="section-subtitle">Itemized financial allocation across cloud resource tiers.</p>
+          </div>
+
+          <div class="card" style="margin-bottom: 2rem;">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Billing Metric</th>
+                    <th>Subtotal Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Compute Instances (VMs)</strong></td>
+                    <td>Per virtual machine hourly execution</td>
+                    <td id="subtotal-compute">₹0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Object / Block Storage</strong></td>
+                    <td>Gigabytes provisioned per month</td>
+                    <td id="subtotal-storage">₹0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Data Transfer (Egress)</strong></td>
+                    <td>Internet data egress exceeding allowance</td>
+                    <td id="subtotal-transfer">₹0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Managed Database Service</strong></td>
+                    <td>Database instance runtime</td>
+                    <td id="subtotal-database">₹0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Cloud Load Balancer</strong></td>
+                    <td>Traffic ingress forwarding rule</td>
+                    <td id="subtotal-lb">₹0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Additional Custom Services</strong></td>
+                    <td>Monitoring, snapshots, backups</td>
+                    <td id="subtotal-additional">₹0.00</td>
+                  </tr>
+                  <tr class="total-row">
+                    <td><strong>Estimated Monthly Total</strong></td>
+                    <td>All resource categories combined</td>
+                    <td id="total-monthly" style="color:var(--primary-blue); font-size:1.1rem;">₹0.00</td>
+                  </tr>
+                  <tr class="total-row">
+                    <td><strong>Estimated Annual Total</strong></td>
+                    <td>Monthly total × 12 months</td>
+                    <td id="total-annual" style="color:var(--accent-violet); font-size:1.1rem;">₹0.00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Export Actions -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom:1rem;">Generate & Export Reports</h3>
+            <p class="text-muted text-sm" style="margin-bottom:1.25rem;">Download cost breakdowns for project presentations, lab assignments, or client proposals.</p>
+            <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+              <button class="btn btn-primary" id="export-csv-btn">📥 Download CSV Report</button>
+              <button class="btn btn-secondary" id="export-json-btn">📋 Export JSON Specification</button>
+              <button class="btn btn-secondary" id="print-report-btn">🖨️ Print / Save as PDF</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. CONFIGURATION COMPARISON SECTION -->
+        <section class="app-section" id="section-comparison">
+          <div class="section-header">
+            <h2>Architecture Tier Comparison</h2>
+            <p class="section-subtitle">Side-by-side comparison between baseline and high-availability cloud configurations.</p>
+          </div>
+
+          <div id="comp-delta-banner" class="comparison-banner banner-equal">
+            Comparing Configuration A and Configuration B...
+          </div>
+
+          <div style="display:flex; gap:1rem; margin-bottom:1.5rem;">
+            <button class="btn btn-secondary btn-sm" id="load-comp-a-btn">📌 Set Current as Config A</button>
+            <button class="btn btn-secondary btn-sm" id="load-comp-b-btn">📌 Set Current as Config B</button>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Architecture Attribute</th>
+                    <th id="comp-a-name">Configuration A</th>
+                    <th id="comp-b-name">Configuration B</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Estimated Monthly Cost</strong></td>
+                    <td id="comp-a-monthly">₹0.00</td>
+                    <td id="comp-b-monthly">₹0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Estimated Annual Cost</strong></td>
+                    <td id="comp-a-annual">₹0.00</td>
+                    <td id="comp-b-annual">₹0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Compute Tier</strong></td>
+                    <td id="comp-a-vms">1 VM</td>
+                    <td id="comp-b-vms">4 VMs</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Storage Footprint</strong></td>
+                    <td id="comp-a-storage">100 GB</td>
+                    <td id="comp-b-storage">500 GB</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Database Instances</strong></td>
+                    <td id="comp-a-db">1 Instance</td>
+                    <td id="comp-b-db">2 Instances</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Load Balancers</strong></td>
+                    <td id="comp-a-lb">Disabled</td>
+                    <td id="comp-b-lb">1 Active</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. SAVED ESTIMATES SECTION -->
+        <section class="app-section" id="section-saved">
+          <div class="section-header">
+            <h2>Saved Configurations</h2>
+            <p class="section-subtitle">Manage locally persisted cloud estimates stored securely in your browser's LocalStorage.</p>
+          </div>
+
+          <div class="card">
+            <div id="empty-saved-state" style="text-align:center; padding:2.5rem 1rem; color:var(--text-muted);">
+              <div style="font-size:2.5rem; margin-bottom:0.5rem;">📂</div>
+              <h4>No Saved Estimates Yet</h4>
+              <p class="text-sm">Configure your resources in the calculator and click "Save to Browser" to save estimates for future review.</p>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Configuration Name</th>
+                    <th>Provider</th>
+                    <th>Resources</th>
+                    <th>Monthly Estimate</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="saved-estimates-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. LEARNING & FINOPS SECTION -->
+        <section class="app-section" id="section-learning">
+          <div class="section-header">
+            <h2>Cloud Economics & FinOps Learning Guide</h2>
+            <p class="section-subtitle">Understanding billing mechanics, egress economics, and cost optimization strategies.</p>
+          </div>
+
+          <div class="finops-grid">
+            <div class="card finops-card">
+              <h3>1. How Compute Billing Works</h3>
+              <p>Virtual Machines (like AWS EC2, Azure VMs, GCP Compute Engine) bill on a per-second or per-hour basis while in an active running state. When an instance is stopped, compute charges pause, but attached persistent disks continue to incur storage costs.</p>
+              <ul>
+                <li><strong>On-Demand:</strong> Maximum flexibility, pay-per-second, highest unit cost.</li>
+                <li><strong>Reserved / Savings Plans:</strong> 1-3 year commitments with up to 72% discounts.</li>
+                <li><strong>Spot Instances:</strong> Spare cloud capacity with up to 90% savings, subject to eviction.</li>
+              </ul>
+            </div>
+
+            <div class="card finops-card">
+              <h3>2. The Storage Hierarchy</h3>
+              <p>Storage costs depend heavily on access speed and durability:</p>
+              <ul>
+                <li><strong>Standard Object Storage (S3 / Blob):</strong> High durability, active access, ~₹1.90 / GB / month.</li>
+                <li><strong>Block Storage (EBS / Managed Disks):</strong> Attached virtual hard drives, billed for provisioned capacity regardless of utilization.</li>
+                <li><strong>Cold / Archive Storage:</strong> Long-term data retention at a fraction of the cost, but subject to retrieval fees and delays.</li>
+              </ul>
+            </div>
+
+            <div class="card finops-card">
+              <h3>3. The Hidden Cost: Network Egress</h3>
+              <p>Data transferred INTO cloud data centers is almost universally free. However, data transferred OUT to the public internet or across different cloud regions or availability zones carries significant per-gigabyte egress charges.</p>
+              <ul>
+                <li>Major providers offer ~100 GB/month free internet egress.</li>
+                <li>Deploying a CDN (e.g. CloudFront, Cloudflare) dramatically slashes egress costs by caching assets closer to users.</li>
+              </ul>
+            </div>
+
+            <div class="card finops-card">
+              <h3>4. Practical FinOps Cost Optimization</h3>
+              <p>Four actionable practices to prevent unexpected cloud bills:</p>
+              <ul>
+                <li><strong>Right-Sizing:</strong> Monitor CPU and memory; downgrade oversized instances running at under 20% utilization.</li>
+                <li><strong>Auto-Stopping:</strong> Automatically shut down non-production development and staging environments outside office hours.</li>
+                <li><strong>Storage Lifecycle Policies:</strong> Transition older files automatically from Standard to Archival tiers after 30-90 days.</li>
+                <li><strong>Billing Budgets & Alerts:</strong> Set proactive cost threshold alerts to prevent billing surprises.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Chart.js CDN (With graceful zero-dependency fallback) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Application Modules -->
+  <script src="js/pricing.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
